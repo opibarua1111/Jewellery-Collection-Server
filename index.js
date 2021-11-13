@@ -71,12 +71,13 @@ async function run() {
             res.json(result);
         });
         //UPDATE user and set admin role
-        app.put('/users/admin', async (req, res) => {
-            const user = req.body;
+        app.put('/users/admin/:email', async (req, res) => {
+            const user = req.params.email;
+            const makeNewAdmin = req.body;
             if (user) {
-                const requesterAccount = await userCollection.findOne({ email: user.email });
+                const requesterAccount = await userCollection.findOne({ email: user });
                 if (requesterAccount.role === 'admin') {
-                    const filter = { email: user.email };
+                    const filter = { email: makeNewAdmin.email };
                     const updateDoc = { $set: { role: 'admin' } };
                     const result = await userCollection.updateOne(filter, updateDoc);
                     res.json(result);
@@ -97,6 +98,39 @@ async function run() {
                 isAdmin = true;
             }
             res.json({ admin: isAdmin });
+        })
+        //GET Reviews
+        app.get('/reviews', async (req, res) => {
+            const cursor = reviewsCollection.find({});
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        })
+        //GET purchases
+        app.get('/purchases', async (req, res) => {
+            const cursor = purchaseCollection.find({});
+            const purchases = await cursor.toArray();
+            res.send(purchases);
+        })
+        //purchase status UPDATE
+        app.put('/purchase/:id', async (req, res) => {
+            const productId = req.params.id;
+            const status = req.body.status;
+            const filter = { _id: ObjectId(productId) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    status: status
+                },
+            };
+            const result = await purchaseCollection.updateOne(filter, updateDoc, options);
+            res.json(result)
+        })
+        //DELETE product
+        app.delete('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await productsCollection.deleteOne(query);
+            res.json(result);
         })
 
         app.post('/users', async (req, res) => {
