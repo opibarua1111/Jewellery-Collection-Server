@@ -70,6 +70,12 @@ async function run() {
             const result = await reviewsCollection.insertOne(review);
             res.json(result);
         });
+        //GET Users
+        app.get('/users', async (req, res) => {
+            const cursor = userCollection.find({});
+            const users = await cursor.toArray();
+            res.send(users);
+        })
         //UPDATE user and set admin role
         app.put('/users/admin/:email', async (req, res) => {
             const user = req.params.email;
